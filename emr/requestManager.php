@@ -214,6 +214,7 @@ class RequestManager {
 	
 	public function editPatientProfile(){
 		$email = $this->patient->getEmail();
+		//this is a test
 	}
 	
 	public function editMyProfile(){
