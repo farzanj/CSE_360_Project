@@ -1,8 +1,6 @@
 <?php
-define("ABSPATH", dirname(__FILE__) . "/");
-
-include(ABSPATH . "session.php");
-include(ABSPATH . "includes.php");
+include("session.php");
+include("includes.php");
 ?>
 
 <title>Universal EMR</title>

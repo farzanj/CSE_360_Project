@@ -1,15 +1,13 @@
 <?php
-define("ABSPATH", dirname(__FILE__) . "/");
-
-include(ABSPATH . "session.php");
-include(ABSPATH . "includes.php");
+include("session.php");
+include("includes.php");
 ?>
 
 <title>Universal EMR</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 
-<?php include(ABSPATH . "view/banner.php"); ?>
+<?php include("view/banner.php"); ?>
 
 <!-- Menu -->
 <div id="menu">
@@ -92,4 +90,4 @@ include(ABSPATH . "includes.php");
 	</div> -->
 </div>
 
-<?php include(ABSPATH . "view/footer.php"); ?>
+<?php include("view/footer.php"); ?>

@@ -1,7 +1,8 @@
 <?php
 session_start();
 
-include_once("view/mainUI.php");
+define("ABSPATH_SESS", dirname(__FILE__) . "/");
+include_once(ABSPATH_SESS . "view/mainUI.php");
 
 $mainUI = null;
 

@@ -102,6 +102,13 @@ class Patient extends User{
 	public function isInsured(){
 		return $this->info['insured'];
 	}
+
+	public function getInsStatus(){
+		if($this->isInsured())
+			return "Yes";
+		else
+			return "No";
+	}
 	
 	public function getInsComp(){
 		if($this->isInsured())

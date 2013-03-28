@@ -21,6 +21,10 @@ img {
 	border: none;
 }
 
+input:focus {
+	background-color: #e8e8e8;
+}
+
 #banner {
 	width: 100%;
 	height: 160px;
@@ -617,6 +621,12 @@ td.record-detail {
 	text-align: left;
 }
 
+span.record-detail {
+	color: #222222;
+	display: inline-block;
+	opacity: 0.8;
+}
+
 span.notes {
 	font-size: 17px;
 	font-weight: bold;
@@ -819,6 +829,27 @@ span.enter-notes {
 	color: #0D4F8B;
 }
 
+span.enter-success {
+	font-size: 20px;
+	font-weight: bold;
+	color: #0D4F8B;
+	display: block;
+	position: relative;
+	top: 150px;
+	left: 150px;
+	opacity: 0.8;
+}
+
+span.enter-error {
+	font-size: 15px;
+	font-weight: bold;
+	color: #CD5555;
+	display: block;
+	position: relative;
+	top: 35px;
+	left: 140px;
+}
+
 /** PATIENT PROFILE **/
 
 span.patient-name {
@@ -852,6 +883,17 @@ a.edit-information {
 
 a.edit-information:hover {
 	color: #000000;
+}
+
+span.patient-not-set {
+	font-size: 20px;
+	font-weight: bold;
+	color: #0D4F8B;
+	display: block;
+	position: relative;
+	top: 125px;
+	left: 25px;
+	opacity: 0.8;
 }
 
 /** EDIT PATIENT PROFILE **/

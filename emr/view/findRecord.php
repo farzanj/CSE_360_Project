@@ -44,10 +44,10 @@ $user = unserialize(base64_decode($_POST["data1"]));
 					<span class="recent-detail-top">Date</span>
 				</td>
 				<td class="recent-detail">
-					<span class="recent-detail-top">First Name</span>
+					<span class="recent-detail-top">Last Name</span>
 				</td>
 				<td class="recent-detail">
-					<span class="recent-detail-top">Last Name</span>
+					<span class="recent-detail-top">First Name</span>
 				</td>
 				<td class="recent-detail">
 					<span class="recent-detail-top">Blood Pres.</span>
@@ -62,7 +62,7 @@ $user = unserialize(base64_decode($_POST["data1"]));
 			<?php foreach ($_POST as $key => $data) {
 				if (strpos($key, "data") !== false && get_class(unserialize(base64_decode($data))) == "Record") {
 					$record = unserialize(base64_decode($data));
-					if ($user->getType() != "patient" || ($user->getEmail() == $record->getPatient()->getEmail())) { ?>
+					if ($record->checkOwnership($user)) { ?>
 						<tr class="recent-row" onclick="loadRecord('<?php echo $record->getRecId(); ?>')">
 							<td class="recent-detail">
 								<span class="recent-detail"><?php echo $record->getRecId(); ?></span>
@@ -71,10 +71,10 @@ $user = unserialize(base64_decode($_POST["data1"]));
 								<span class="recent-detail"><?php echo date("m.d.y", strtotime($record->getDate()));?></span>
 							</td>
 							<td class="recent-detail">
-								<span class="recent-detail"><?php echo $record->getPatient()->getFname(); ?></span>
+								<span class="recent-detail"><?php echo $record->getPatient()->getLname(); ?></span>
 							</td>
 							<td class="recent-detail">
-								<span class="recent-detail"><?php echo $record->getPatient()->getLname(); ?></span>
+								<span class="recent-detail"><?php echo $record->getPatient()->getFname(); ?></span>
 							</td>
 							<td class="recent-detail">
 								<span class="recent-detail"><?php echo $record->getBloodPres(); ?></span>

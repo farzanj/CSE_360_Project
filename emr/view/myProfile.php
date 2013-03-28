@@ -1,6 +1,6 @@
 <?php
 include_once("../model/User.php");
-$user = unserialize(base64_decode($_GET["data1"]));
+$user = unserialize(base64_decode($_POST["data1"]));
 ?>
 
 <div class="frame-content" id="frame-5">

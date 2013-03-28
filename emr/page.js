@@ -63,6 +63,7 @@ function loadRecord(recordId) {
 		if (ajaxRequest.readyState == 4) {
 			var frame = document.getElementsByClassName("frame");
 			frame[0].innerHTML = ajaxRequest.responseText;
+			setMenuColor();
 		}
 	}
 }
@@ -76,11 +77,11 @@ function sendForm(formID, callback) {
 	var dataString = "?";
 
 	for (var i = 0; i < elements.length; i++) {
-		if (elements[i].tagName == "INPUT") {
+		if (elements[i].tagName == "INPUT" || elements[i].tagName == "TEXTAREA") {
 			if (elements[i].type == "checkbox" || elements[i].type == "radio") {
 				dataString += elements[i].name + "=" + elements[i].checked + "&";
 			} else {
-				dataString += elements[i].name + "=" + elements[i].value + "&";
+				dataString += elements[i].name + "=" + elements[i].value.replace(/#/g, "") + "&";
 			}
 		}
 	}

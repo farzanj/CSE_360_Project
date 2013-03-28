@@ -1,13 +1,13 @@
 <?php
-
-include_once(ABSPATH . "model/User.php");
+define("ABSPATH_MUI", dirname(__FILE__) . "/");
+include_once(ABSPATH_MUI . "../model/User.php");
 
 class MainUI {
 
 	private $loggedIn;
 	private $user;
 
-	function __construct(User $user = null) {
+	function __construct($user = null) {
 		if (!is_null($user)) {
 			$this->user = $user;
 			$this->loggedIn = true;

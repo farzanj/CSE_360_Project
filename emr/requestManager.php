@@ -1,7 +1,7 @@
 <?php
-
-include_once("model/User.php");
-include_once("model/Record.php");
+define("ABSPATH_REQ", dirname(__FILE__) . "/");
+include_once(ABSPATH_REQ . "model/User.php");
+include_once(ABSPATH_REQ . "model/Record.php");
 
 class RequestManager {
 
@@ -9,16 +9,46 @@ class RequestManager {
 	private $patient;
 	private $record;
 
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: RequestManager()
+	//
+	// The requestManager constructor. Sets the current user and the current patient (if the current patient
+	// has been selected).
+	//--------------------------------------------------------------------------------------------------------
 	function __construct() {
 		session_start();
 		$this->user = unserialize($_SESSION["user"]);
+		if (isset($_SESSION["patient"])) {
+			$this->patient = unserialize($_SESSION["patient"]);
+		} else {
+			$this->patient = null;
+		}
 	}
 
+	public function getUser() {
+		return $this->user;
+	}
+
+	public function getPatient() {
+		return $this->patient;
+	}
+
+	public function getRecord() {
+		return $this->record;
+	}
+
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: login(String email, String password): bool
+	//
+	// Searches for a user with the specified email and password. If an entry in the database is found,
+	// creates a User object depending on the type and sets the "user" session. Returns true if a user is
+	// found or false otherwise.
+	//--------------------------------------------------------------------------------------------------------
 	public function login($email, $password) {
 		$query = "SELECT * FROM user WHERE email = '" . $email . "' AND password = '" . sha1($password) . "'";
 		$result = mysql_query($query);
 
-		if (mysql_num_rows($result) == 1) {
+		if ($result && mysql_num_rows($result) == 1) {
 			$row = mysql_fetch_array($result);
 			$type = $row["type"];
 			$this->user = null;
@@ -46,46 +76,93 @@ class RequestManager {
 		}
 	}
 
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: logout(): bool
+	//
+	// Destroys the current session (logging the user out).
+	//--------------------------------------------------------------------------------------------------------
 	public function logout() {
 		$_SESSION = array();
 
 		return session_destroy();
 	}
 
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: findPatient(String fullName): Patient
+	//
+	// Attempts to find a patient by their full name. Returns the Patient object if an entry in the database
+	// was found or false otherwise.
+	//--------------------------------------------------------------------------------------------------------
 	public function findPatient($fullName) {
-		$name = explode(" ", $fullName);
-		$firstName = $name[0];
-		$lastName = $name[1];
+		if (strpos($fullName, " ") !== false) {
+			$name = explode(" ", $fullName);
+			$firstName = $name[0];
+			$lastName = $name[1];
+		} else {
+			return null;
+		}
 
 		$query = "SELECT email FROM patient WHERE fname = '" . $firstName . "' AND lname = '" . $lastName . "'";
 		$result = mysql_query($query);
 
-		if (mysql_num_rows($result) == 1) {
+		if ($result && mysql_num_rows($result) == 1) {
 			$row = mysql_fetch_array($result);
 			$patient = new Patient($row["email"]);
-			$patient->getInfo();
-
 			return $patient;
 		} else {
 			return null;
 		}
 	}
 
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: findPatientById(int regId): Patient
+	//
+	// Attempts to find a patient by their registration ID. Returns the Patient object if an entry in the
+	// database was found or false otherwise. 
+	//--------------------------------------------------------------------------------------------------------
 	public function findPatientById($regId) {
 		$query = "SELECT email FROM patient WHERE regId = " . $regId;
 		$result = mysql_query($query);
 
-		if (mysql_num_rows($result) == 1) {
+		if ($result && mysql_num_rows($result) == 1) {
 			$row = mysql_fetch_array($result);
 			$patient = new Patient($row["email"]);
-			$patient->getInfo();
-
 			return $patient;
 		} else {
 			return null;
 		}
 	}
 
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: findPersonnel(String email): Personnel
+	//
+	// Attempts to find a personnel by their email. Returns a Personnel Object (as a Doctor or Nurse) if an 
+	// an entry in the database was found or false otherwise.
+	//--------------------------------------------------------------------------------------------------------
+	public function findPersonnel($email) {
+		$query = "SELECT type FROM user WHERE email = '" . $email . "'";
+		$result = mysql_query($query);
+		
+		if ($result && mysql_num_rows($result) == 1) {
+			$row = mysql_fetch_array($result);
+			if ($row["type"] == "doctor") {
+				$personnel = new Doctor($email);
+			} else {
+				$personnel = new Nurse($email);
+			}
+
+			return $personnel;
+		} else {
+			return null;
+		}
+	}
+
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: findRecord(String fullName): bool
+	//
+	// Attempts to find a record by the patient's full name. Returns true if the record was found in the 
+	// database or false otherwise. 
+	//--------------------------------------------------------------------------------------------------------
 	public function findRecord($fullName) {
 		$patient = $this->findPatient($fullName);
 
@@ -93,9 +170,10 @@ class RequestManager {
 			$query = "SELECT * FROM records WHERE regId = " . $patient->getRegId() . " ORDER BY date DESC";
 			$result = mysql_query($query);
 
-			if (mysql_num_rows($result) > 0) {
+			if ($result && mysql_num_rows($result) > 0) {
 				$row = mysql_fetch_array($result);
-				$this->record = new Record($patient, $row["recId"], $row["bloodPres"], $row["sugarLevel"], $row["weight"], $row["prescription"], $row["date"]);
+				$personnel = $this->findPersonnel($row["dEmail"]);
+				$this->record = new Record($patient, $row["bloodPres"], $row["sugarLevel"], $row["weight"], $row["prescription"], $personnel, $row["recId"], $row["date"]);
 
 				return true;
 			} else {
@@ -106,14 +184,21 @@ class RequestManager {
 		}
 	}
 
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: findRecordById(int recId): bool
+	//
+	// Attempts to find a record by the record ID. Returns true if the record was found in the database or
+	// false otherwise.
+	//--------------------------------------------------------------------------------------------------------
 	public function findRecordById($recId) {
 		$query = "SELECT * FROM records WHERE recId = " . $recId;
 		$result = mysql_query($query);
 
-		if (mysql_num_rows($result) == 1) {
+		if ($result && mysql_num_rows($result) == 1) {
 			$row = mysql_fetch_array($result);
 			$patient = $this->findPatientById($row["regId"]);
-			$this->record = new Record($patient, $row["recId"], $row["bloodPres"], $row["sugarLevel"], $row["weight"], $row["prescription"], $row["date"]);
+			$personnel = $this->findPersonnel($row["dEmail"]);
+			$this->record = new Record($patient, $row["bloodPres"], $row["sugarLevel"], $row["weight"], $row["prescription"], $personnel, $row["recId"], $row["date"]);
 
 			return true;
 		} else {
@@ -121,8 +206,13 @@ class RequestManager {
 		}
 	}
 
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: getRecentRecords(): records[]
+	//
+	// Returns the most recent 20 records in the database sorted by date as an array.
+	//--------------------------------------------------------------------------------------------------------
 	public function getRecentRecords() {
-		$query = "SELECT * FROM records ORDER BY date DESC";
+		$query = "SELECT * FROM records ORDER BY date DESC LIMIT 20";
 		$result = mysql_query($query);
 
 		$records = array();
@@ -130,7 +220,8 @@ class RequestManager {
 		if (mysql_num_rows($result) > 0) {
 			while ($row = mysql_fetch_array($result)) {
 				$patient = $this->findPatientById($row["regId"]);
-				$records[] = new Record($patient, $row["recId"], $row["bloodPres"], $row["sugarLevel"], $row["weight"], $row["prescription"], $row["date"]);
+				$personnel = $this->findPersonnel($row["dEmail"]);
+				$records[] = new Record($patient, $row["bloodPres"], $row["sugarLevel"], $row["weight"], $row["prescription"], $personnel, $row["recId"], $row["date"]);
 			}
 
 			return $records;
@@ -139,16 +230,12 @@ class RequestManager {
 		}
 	}
 
-	// public function sendData($serverPath, $data) {
-	// 	$ch = curl_init();
-	// 	curl_setopt($ch, CURLOPT_URL, $serverPath . $data);
-	// 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	// 	$content = curl_exec($ch);
-	// 	curl_close($ch);
-
-	// 	return $content;
-	// }
-
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: sendData(String serverPath, String data): String
+	//
+	// Sends data to a page specified by the server path (link to file) using the cURL software library. 
+	// Returns the HTML content of the page after the data was sent.
+	//--------------------------------------------------------------------------------------------------------
 	public function sendData($serverPath, $data) {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $serverPath);
@@ -161,10 +248,16 @@ class RequestManager {
 		return $content;
 	}
 
-	public function loadPage($file, $data = null) {
-		$file .= ".php";
-		$filePath = ABSPATH . "view/" . $file;
-		$serverPath = $_SERVER["SERVER_NAME"] . "/emr/view/" . $file;
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: loadPage(String fileName, String data[]): void
+	//
+	// Converts the data array to a query string and then loads the requested page by sending the data to it
+	// and outputting the file's HTML content directly to the browser.
+	//--------------------------------------------------------------------------------------------------------
+	public function loadPage($fileName, $data = null) {
+		$fileName .= ".php";
+		$filePath = ABSPATH_REQ . "view/" . $fileName;
+		$serverPath = $_SERVER["SERVER_NAME"] . "/emr/view/" . $fileName;
 
 		$dataString = "";
 
@@ -188,53 +281,54 @@ class RequestManager {
 		}
 	}
 
-	public function getUser() {
-		return $this->user;
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: insertRecord(Patient patient, double bldPres, double sgrLvl, double weight, String notes,
+	//			 Personnel personnel): bool
+	//
+	// Inserts a new record into the database. Returns true if the record was successfully inserted or false
+	// otherwise.
+	//--------------------------------------------------------------------------------------------------------
+	public function insertRecord($patient, $bldPres, $sgrLvl, $weight, $notes, $personnel){
+		if (!is_null($patient)) {
+			$record = new Record($patient, $bldPres, $sgrLvl, $weight, $notes, $personnel);
+			return $record->store();
+		} else {
+			return false;
+		}
 	}
 
-	public function getPatient() {
-		return $this->patient;
-	}
-
-	public function getRecord() {
-		return $this->record;
-	}
-	
-	public function insertRecord($patient, $bldPres, $sgrLvl, $weight, $notes, $doctor){
-		 
-	}
-	
-	public function displayProfile($user){
-	
-	}
-	
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: setCurrentPatient(String patientEmail): void
+	//
+	// Creates a Patient object and sets the current "patient" session. 
+	//--------------------------------------------------------------------------------------------------------
 	public function setCurrentPatient($patientEmail){
-	
+		$this->patient = new Patient($patientEmail);
+		$_SESSION["patient"] = serialize($this->patient);
 	}
-	
+
 	public function editPatientProfile(){
 		$email = $this->patient->getEmail();
-		//this is a test
 	}
-	
+
 	public function editMyProfile(){
-		
+
 	}
-	
+
 	public function changePass(){
-	
+
 	}
-	
+
 	public function forgotPass($email){
-	
+
 	}
-	
+
 	public function createChat(){
-	
+
 	}
-	
+
 	public function makeApp(){
-	
+
 	}
 }
 

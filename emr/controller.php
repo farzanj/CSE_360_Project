@@ -1,8 +1,6 @@
 <?php
-define("ABSPATH", dirname(__FILE__) . "/");
-
-include_once(ABSPATH . "dbconnect.php");
-include_once(ABSPATH . "requestManager.php");
+include_once("dbconnect.php");
+include_once("requestManager.php");
 
 $con = new dbconnect();
 $con->connect();
@@ -24,18 +22,21 @@ if (isset($_GET["file"])) {
 			}
 			$request->loadPage("findRecord", $data);
 			break;
-		// case "recordInformation":
-		// 	$request->findRecordById($_GET["recId"]);
-		// 	$data[] = $request->getRecord();
-		// 	$request->loadPage("recordInformation", $data);
-		// 	break;
+		case "enterData":
+			$data[] = $request->getPatient();
+			$request->loadPage("enterData", $data);
+			break;
+		case "patientProfile":
+			$data[] = $request->getPatient();
+			$request->loadPage("patientProfile", $data);
+			break;
 		default:
 			$request->loadPage($_GET["file"], $data);
 			break;
 	}
 
 //---------------------------------------------------
-// Find Record
+// Find Record Submit
 //---------------------------------------------------
 } else if (isset($_GET["find_submit"])) {
 	$data[] = $request->getUser();
@@ -50,7 +51,8 @@ if (isset($_GET["file"])) {
 	}
 
 	// Check if record is found. If user is a patient, then also check if the record is the user's own record.
-	if ($result && ($request->getUser()->getType() != "patient" || ($request->getUser()->getEmail() == $request->getRecord()->getPatient()->getEmail()))) {
+	if ($result && $request->getRecord()->checkOwnership($request->getUser())) {
+		$request->setCurrentPatient($request->getRecord()->getPatient()->getEmail());
 		$data[] = $request->getRecord();
 		$request->loadPage("recordInformation", $data);
 	} else {
@@ -60,6 +62,40 @@ if (isset($_GET["file"])) {
 		}
 		$data[] = "error=1";
 		$request->loadPage("findRecord", $data);
+	}
+
+//---------------------------------------------------
+// Enter Data Submit
+//---------------------------------------------------
+} else if (isset($_GET["enter_submit"])) {
+	$result = false;
+
+	if (isset($_GET["patient_name"])) {
+		$patient = $request->findPatient($_GET["patient_name"]);
+		if ($request->getUser()->getType() != "patient") {
+			$personnel = $request->getUser();
+		} else {
+			$personnel = null;
+		}
+	} else {
+		if ($request->getUser()->getType() == "patient") {
+			$patient = $request->getUser();
+			$personnel = null;
+		}
+	}
+
+	foreach ($_GET as $key => $element) {
+		if (empty($element)) {
+			$element = "";
+		}
+	}
+
+	if ($request->insertRecord($patient, $_GET["blood_pressure"], $_GET["sugar_level"], $_GET["weight"], $_GET["notes"], $personnel)) {
+		$request->loadPage("enterSuccess", $data);
+	} else {
+		$data[] = $request->getUser();
+		$data[] = "error=1";
+		$request->loadPage("enterData", $data);
 	}
 
 //---------------------------------------------------
