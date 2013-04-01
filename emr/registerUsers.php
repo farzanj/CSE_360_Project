@@ -18,8 +18,8 @@ $con->connect();
 
 $val= new Validate();
 
-if(($val->checkName($_POST['fname'])) && ($val->checkCity($_POST['city'])) && ($val->checkZip($_POST['zip'])) && ($val->validateEmail($_POST['email'])) && 
-	($val->checkPass($_POST['regid'])) && ($val->checkPhone($_POST['phone'])) && ($val->checkAddress($_POST['address']))) {
+if(($val->checkName($_POST['fname'])) && ($val->checkName($_POST['lname'])) && ($val->checkCity($_POST['city'])) && ($val->checkZip($_POST['zip'])) && ($val->validateEmail($_POST['email'])) && 
+	($val->checkPass($_POST['regid'])) && ($val->checkPhone($_POST['phone'])) && ($val->checkAddress($_POST['address'])) && ($val->checkState($_POST['state']))) {
 
 	if (!isset($_POST['type'])) {
 		$type = "patient";

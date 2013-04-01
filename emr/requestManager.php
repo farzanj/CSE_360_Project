@@ -2,12 +2,14 @@
 define("ABSPATH_REQ", dirname(__FILE__) . "/");
 include_once(ABSPATH_REQ . "model/User.php");
 include_once(ABSPATH_REQ . "model/Record.php");
+include_once(ABSPATH_REQ . "Validate.php");
 
 class RequestManager {
 
 	private $user;
 	private $patient;
 	private $record;
+	private $validate;
 
 	//--------------------------------------------------------------------------------------------------------
 	// FUNCTION: RequestManager()
@@ -17,6 +19,7 @@ class RequestManager {
 	//--------------------------------------------------------------------------------------------------------
 	function __construct() {
 		session_start();
+		$this->validate = new Validate();
 		$this->user = unserialize($_SESSION["user"]);
 		if (isset($_SESSION["patient"])) {
 			$this->patient = unserialize($_SESSION["patient"]);
@@ -306,20 +309,71 @@ class RequestManager {
 		$this->patient = new Patient($patientEmail);
 		$_SESSION["patient"] = serialize($this->patient);
 	}
-
-	public function editPatientProfile(){
-		$email = $this->patient->getEmail();
+	
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: editPatientProfile(String fname, String lname, String gender, String dob, String email, 
+	//	String phone, String address, String city, String state, String zipcode, String insured, String 
+	//	inscomp, String insId, String insPhone): bool
+	//
+	// Updates patient's detailed information in the database after validating the new info
+	//--------------------------------------------------------------------------------------------------------
+	public function editPatientProfile($fname, $lname, $gender, $dob, $email, $phone, $address, $city, $state, $zipcode, $insured, $inscomp, $insId, $insPhone){		
+		if(($this->validate->checkName($fname)) && ($this->validate->checkName($lname)) && ($this->validate->checkCity($city)) && ($this->validate->checkZip($zipcode)) && 
+			($this->validate->validateEmail($email)) && ($this->validate->checkPhone($phone)) && ($this->validate->checkAddress($address))){
+			
+			$query = "UPDATE patient SET fname='".$fname."', lname='".$lname."', gender='".$gender."',
+			dob='".$dob."', email='".$email."', phone='".$phone."', address='".$address."',
+			city='".$city."', state='".$state."', zipcode='".$zipcode."', insured='".$insured."',
+			inscomp='".$inscomp."', insId='".$insId."', insphone='".$insPhone."' WHERE email='".$this->patient->getEmail()."'";
+		
+			return mysql_query($query);
+		}
+		else {
+			return false;
+		}
 	}
 
-	public function editMyProfile(){
-
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: editMyProfile(String phone, String address, String city, String state, String zipcode): bool
+	//
+	// Updates users's general information in the database after validating the new info
+	//--------------------------------------------------------------------------------------------------------
+	public function editMyProfile($phone, $address, $city, $state, $zipcode){
+		if(($this->validate->checkCity($city)) && ($this->validate->checkZip($zipcode)) && ($this->validate->checkState($state)) &&
+			 ($this->validate->checkPhone($phone)) && ($this->validate->checkAddress($address))){
+		
+			$query = "UPDATE ".$this->user->getType()." SET phone='".$phone."', address='".$address."',
+			city='".$city."', state='".$state."', zipcode='".$zipcode."' WHERE email='".$this->user->getEmail()."'";
+		
+			return mysql_query($query);
+		}
+		else {
+			return false;
+		}		
 	}
 
-	public function changePass(){
-
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: changePass(String oldPass, String newPass): bool
+	//
+	// Updates users's password in the database after validating both the old and the new password
+	//--------------------------------------------------------------------------------------------------------
+	public function changePass($oldPass, $newPass){		
+		if($this->validate->checkPass($newPass)){
+			$result = mysql_query("SELECT pass FROM user WHERE email='".$this->user->getEmail()."'");
+			$info = mysql_fetch_assoc($result);
+			if(sha1($oldPass) == $info['pass']){
+				return mysql_query("UPDATE user SET pass=sha1(\"".$newPass."\") WHERE email='".$this->user->getEmail()."'");
+			}
+			else {
+				return false;
+			}
+		}
+		else{
+			return false;
+		}
 	}
 
-	public function forgotPass($email){
+	public function forgotPass(){
 
 	}
 

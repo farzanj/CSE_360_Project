@@ -30,6 +30,17 @@ class Validate{
 			return FALSE;
 	}
 	
+	public function checkState($state) {
+		if(strlen(trim($state)) > 0) {
+			if((preg_match("/^[a-zA-Z\s]{2,50}$/i",  trim($state))))
+				return TRUE;
+			else
+				return FALSE;
+		}
+		else
+			return FALSE;
+	}
+	
 	public function checkZip($zip_code) {
 		if(strlen(trim($zip_code)) > 0) {
 			if(preg_match("/^[(\d)]{5}$/",  trim($zip_code))) 
