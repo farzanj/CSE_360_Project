@@ -55,7 +55,7 @@ if (!empty($_POST["data2"])) {
 			<?php } else { ?>
 				<span class="enter-notes">Leave notes for your Physician</span>
 			<?php } ?>
-			<?php if ($user->getType() == "doctor") { ?>
+			<?php if ($user->getType() != "nurse") { ?>
 				<textarea id="enter-notes" name="notes"></textarea>
 			<?php } else { ?>
 				<textarea disabled="disabled" id="enter-notes" name="notes"></textarea>

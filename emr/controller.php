@@ -9,7 +9,7 @@ $request = new RequestManager();
 $data = array();
 
 //---------------------------------------------------
-// Load General Page (top tabs)
+// Load General Page
 //---------------------------------------------------
 if (isset($_GET["file"])) {
 	$data[] = $request->getUser();
@@ -29,6 +29,10 @@ if (isset($_GET["file"])) {
 		case "patientProfile":
 			$data[] = $request->getPatient();
 			$request->loadPage("patientProfile", $data);
+			break;
+		case "editPatientProfile":
+			$data[] = $request->getPatient();
+			$request->loadPage("editPatientProfile", $data);
 			break;
 		default:
 			$request->loadPage($_GET["file"], $data);
@@ -68,8 +72,6 @@ if (isset($_GET["file"])) {
 // Enter Data Submit
 //---------------------------------------------------
 } else if (isset($_GET["enter_submit"])) {
-	$result = false;
-
 	if (isset($_GET["patient_name"])) {
 		$patient = $request->findPatient($_GET["patient_name"]);
 		if ($request->getUser()->getType() != "patient") {
@@ -99,12 +101,65 @@ if (isset($_GET["file"])) {
 	}
 
 //---------------------------------------------------
+// Edit Patient Profile Submit
+//---------------------------------------------------
+} else if (isset($_GET["edit_submit"])) {
+	$dob = $_GET["month"] . "-" . $_GET["day"] . "-" . $_GET["year"];
+	if ($_GET["insured"]) {
+		$insured = 1;
+	} else {
+		$insured = 0;
+	}
+
+	$result = $request->editPatientProfile($_GET["first_name"], $_GET["last_name"], $_GET["gender"], $dob, $_GET["email"], $_GET["patient_phone"],
+		$_GET["address1"], $_GET["city"], $_GET["state"], $_GET["zipcode"], $insured, $_GET["insurance_company"], $_GET["insurance_id"], 
+		$_GET["insurance_phone"]);
+
+	if ($result) {
+		$request->setCurrentPatient($_GET["email"]);
+		$request->loadPage("updateSuccess", $data);
+	} else {
+		$data[] = $request->getUser();
+		$data[] = $request->getPatient();
+		$data[] = "error=1";
+		$request->loadPage("editPatientProfile", $data);
+	}
+
+//---------------------------------------------------
+// Edit User Profile Submit
+//---------------------------------------------------
+} else if (isset($_GET["edit_user_submit"])) {
+	$result = $request->editMyProfile($_GET["user_phone"], $_GET["user_address1"], $_GET["user_city"], $_GET["user_state"], $_GET["user_zipcode"]);
+
+	if ($result) {
+		$request->setCurrentUser($request->getUser()->getEmail(), $request->getUser()->getType());
+		$request->loadPage("updateSuccess", $data);
+	} else {
+		$data[] = $request->getUser();
+		$data[] = "error=1";
+		$request->loadPage("editMyProfile", $data);
+	}
+
+} else if (isset($_GET["password_change_submit"])) {
+	$result = false;
+
+	if ($_GET["new_password"] == $_GET["new_password2"]) {
+		$result = $request->changePass($_GET["old_password"], $_GET["new_password"]);
+	}
+
+	if ($result) {
+		$request->loadPage("updateSuccess", $data);
+	} else {
+		$data[] = $request->getUser();
+		$data[] = "error=1";
+		$request->loadPage("changePassword", $data);
+	}
+
+//---------------------------------------------------
 // Login
 //---------------------------------------------------
 } else if (isset($_POST["login_submit"])) {
-	$result = $request->login($_POST["email"], $_POST["password"]);
-
-	if ($result) {
+	if ($request->login($_POST["email"], $_POST["password"])) {
 		header("Location: /emr/");
 		exit();
 	} else {

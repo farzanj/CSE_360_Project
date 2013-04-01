@@ -23,8 +23,6 @@ class RequestManager {
 		$this->user = unserialize($_SESSION["user"]);
 		if (isset($_SESSION["patient"])) {
 			$this->patient = unserialize($_SESSION["patient"]);
-		} else {
-			$this->patient = null;
 		}
 	}
 
@@ -48,7 +46,7 @@ class RequestManager {
 	// found or false otherwise.
 	//--------------------------------------------------------------------------------------------------------
 	public function login($email, $password) {
-		$query = "SELECT * FROM user WHERE email = '" . $email . "' AND password = '" . sha1($password) . "'";
+		$query = "SELECT * FROM user WHERE email = '" . $email . "' AND pass = '" . sha1($password) . "'";
 		$result = mysql_query($query);
 
 		if ($result && mysql_num_rows($result) == 1) {
@@ -56,22 +54,7 @@ class RequestManager {
 			$type = $row["type"];
 			$this->user = null;
 
-			switch ($type) {
-				case "patient":
-					$this->user = new Patient($email);
-					break;
-				case "nurse":
-					$this->user = new Nurse($email);
-					break;
-				case "doctor":
-					$this->user = new Doctor($email);
-					break;
-			}
-
-			$this->user->getInfo();
-
-			$_SESSION["user"] = serialize($this->user);
-			$_SESSION["type"] = $this->user->getType();
+			$this->setCurrentUser($email, $type);
 
 			return true;
 		} else {
@@ -94,7 +77,7 @@ class RequestManager {
 	// FUNCTION: findPatient(String fullName): Patient
 	//
 	// Attempts to find a patient by their full name. Returns the Patient object if an entry in the database
-	// was found or false otherwise.
+	// was found or null otherwise.
 	//--------------------------------------------------------------------------------------------------------
 	public function findPatient($fullName) {
 		if (strpos($fullName, " ") !== false) {
@@ -121,7 +104,7 @@ class RequestManager {
 	// FUNCTION: findPatientById(int regId): Patient
 	//
 	// Attempts to find a patient by their registration ID. Returns the Patient object if an entry in the
-	// database was found or false otherwise. 
+	// database was found or null otherwise.
 	//--------------------------------------------------------------------------------------------------------
 	public function findPatientById($regId) {
 		$query = "SELECT email FROM patient WHERE regId = " . $regId;
@@ -140,7 +123,7 @@ class RequestManager {
 	// FUNCTION: findPersonnel(String email): Personnel
 	//
 	// Attempts to find a personnel by their email. Returns a Personnel Object (as a Doctor or Nurse) if an 
-	// an entry in the database was found or false otherwise.
+	// an entry in the database was found or null otherwise.
 	//--------------------------------------------------------------------------------------------------------
 	public function findPersonnel($email) {
 		$query = "SELECT type FROM user WHERE email = '" . $email . "'";
@@ -301,6 +284,27 @@ class RequestManager {
 	}
 
 	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: setCurrentUser(String userEmail, String type): void
+	//
+	// Creates a User object (depending on the user type) and sets the current "user" session.
+	//--------------------------------------------------------------------------------------------------------
+	public function setCurrentUser($userEmail, $type) {
+		switch ($type) {
+			case "patient":
+				$this->user = new Patient($userEmail);
+				break;
+			case "nurse":
+				$this->user = new Nurse($userEmail);
+				break;
+			case "doctor":
+				$this->user = new Doctor($userEmail);
+				break;
+		}
+
+		$_SESSION["user"] = serialize($this->user);
+	}
+
+	//--------------------------------------------------------------------------------------------------------
 	// FUNCTION: setCurrentPatient(String patientEmail): void
 	//
 	// Creates a Patient object and sets the current "patient" session. 
@@ -320,12 +324,15 @@ class RequestManager {
 	public function editPatientProfile($fname, $lname, $gender, $dob, $email, $phone, $address, $city, $state, $zipcode, $insured, $inscomp, $insId, $insPhone){		
 		if(($this->validate->checkName($fname)) && ($this->validate->checkName($lname)) && ($this->validate->checkCity($city)) && ($this->validate->checkZip($zipcode)) && 
 			($this->validate->validateEmail($email)) && ($this->validate->checkPhone($phone)) && ($this->validate->checkAddress($address))){
+
+			$query = "UPDATE user SET email='".$email."' WHERE email='" . $this->patient->getEmail() . "'";
+			mysql_query($query);
 			
 			$query = "UPDATE patient SET fname='".$fname."', lname='".$lname."', gender='".$gender."',
 			dob='".$dob."', email='".$email."', phone='".$phone."', address='".$address."',
 			city='".$city."', state='".$state."', zipcode='".$zipcode."', insured='".$insured."',
 			inscomp='".$inscomp."', insId='".$insId."', insphone='".$insPhone."' WHERE email='".$this->patient->getEmail()."'";
-		
+			
 			return mysql_query($query);
 		}
 		else {

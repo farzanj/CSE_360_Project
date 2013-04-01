@@ -1032,6 +1032,16 @@ td.edit-box {
 	color: #0D4F8B;
 }
 
+span.edit-error {
+	font-size: 15px;
+	font-weight: bold;
+	color: #CD5555;
+	display: block;
+	position: relative;
+	top: -20px;
+	left: 120px;
+}
+
 /** MY PROFILE **/
 
 span.my-name {
@@ -1173,6 +1183,16 @@ span.edit-my-detail {
 	color: #0D4F8B;
 }
 
+span.edit-my-error {
+	font-size: 15px;
+	font-weight: bold;
+	color: #CD5555;
+	display: block;
+	position: relative;
+	top: -5px;
+	left: 120px;
+}
+
 /** CHANGE PASSWORD **/
 
 span.error-password {
@@ -1181,7 +1201,7 @@ span.error-password {
 	color: #CD5555;
 	display: block;
 	position: relative;
-	top: -20px;
+	top: -10px;
 }
 
 span.error-invalid {

@@ -77,27 +77,28 @@ function sendForm(formID, callback) {
 	var dataString = "?";
 
 	for (var i = 0; i < elements.length; i++) {
-		if (elements[i].tagName == "INPUT" || elements[i].tagName == "TEXTAREA") {
+		if (elements[i].tagName == "INPUT" || elements[i].tagName == "TEXTAREA" || elements[i].tagName == "SELECT") {
 			if (elements[i].type == "checkbox" || elements[i].type == "radio") {
 				dataString += elements[i].name + "=" + elements[i].checked + "&";
+			} else if (elements[i].type == "select-one") {
+				dataString += elements[i].name + "=" + elements[i].options[elements[i].selectedIndex].value + "&";
 			} else {
 				dataString += elements[i].name + "=" + elements[i].value.replace(/#/g, "") + "&";
 			}
 		}
 	}
 
-	ajaxRequest.open("GET", "/emr/controller.php" + dataString, true);
+	ajaxRequest.open("GET", "/emr/controller.php" + encodeURI(dataString), true);
 	ajaxRequest.send(null);
 
 	ajaxRequest.onreadystatechange = function() {
 		if (ajaxRequest.readyState == 4) {
 			var frame = document.getElementsByClassName("frame");
 			frame[0].innerHTML = ajaxRequest.responseText;
-			setMenuColor();
 			callback();
 		}
 	}
-}
+}	
 
 function setPhysician(id) {
 	var row = document.getElementById(id);
