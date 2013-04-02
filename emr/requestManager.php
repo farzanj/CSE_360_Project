@@ -381,15 +381,23 @@ class RequestManager {
 	}
 
 	public function forgotPass(){
-
+		// Phase 3 implementation
+	}
+	
+	public function getAvailableNurse(){
+		// Phase 3 implementation
 	}
 
-	public function createChat(){
-
+	public function createChat($user, $nurse){
+		// Phase 3 implementation
 	}
 
 	public function makeApp(){
-
+		// Phase 3 implementation
+	}
+	
+	public function generateGraph(){
+		// Phase 3 implementation
 	}
 }
 

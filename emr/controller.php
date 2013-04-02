@@ -139,7 +139,9 @@ if (isset($_GET["file"])) {
 		$data[] = "error=1";
 		$request->loadPage("editMyProfile", $data);
 	}
-
+//---------------------------------------------------
+// Change Password Submit
+//---------------------------------------------------
 } else if (isset($_GET["password_change_submit"])) {
 	$result = false;
 
