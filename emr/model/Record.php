@@ -40,8 +40,8 @@ class Record{
 			VALUES('".$this->patient->getRegId()."', '".$dEmail."', '".$this->bloodPres."', '".$this->sugarLevel."', '".$this->weight."', '".mysql_real_escape_string(nl2br(htmlspecialchars($this->prescription)))."')");
 	}
 	
-	public function insertPrescription($recId, $prescription){
-		return mysql_query("UPDATE records SET prescription='".$prescription."' WHERE recId=".$recId);
+	public function insertPrescription($user, $prescription){
+		return mysql_query("UPDATE records SET prescription='".mysql_real_escape_string(nl2br(htmlspecialchars($prescription)))."', dEmail='".$user->getEmail() . "' WHERE recId=".$this->recId);
 	}
 	
 	public function getRecInfoArray($recId){

@@ -13,6 +13,7 @@ $data = array();
 //---------------------------------------------------
 if (isset($_GET["file"])) {
 	$data[] = $request->getUser();
+	$data[] = $request->getPatient();
 
 	switch ($_GET["file"]) {
 		case "findRecord":
@@ -22,17 +23,10 @@ if (isset($_GET["file"])) {
 			}
 			$request->loadPage("findRecord", $data);
 			break;
-		case "enterData":
-			$data[] = $request->getPatient();
-			$request->loadPage("enterData", $data);
-			break;
-		case "patientProfile":
-			$data[] = $request->getPatient();
-			$request->loadPage("patientProfile", $data);
-			break;
-		case "editPatientProfile":
-			$data[] = $request->getPatient();
-			$request->loadPage("editPatientProfile", $data);
+		case "viewGraph":
+			$request->generateGraph();
+			$data[] = $request->getRecord();
+			$request->loadPage("viewGraph", $data);
 			break;
 		default:
 			$request->loadPage($_GET["file"], $data);
@@ -101,6 +95,22 @@ if (isset($_GET["file"])) {
 	}
 
 //---------------------------------------------------
+// Change Prescription/Notes
+//---------------------------------------------------
+} else if (isset($_GET["prescription_submit"])) {
+	$request->findRecordById($_GET["recId"]);
+
+	if ($request->getRecord()->insertPrescription($request->getUser(), $_GET["prescription"])) {
+		$request->loadPage("enterSuccess", $data);
+	} else {
+		$data[] = $request->getUser();
+		$data[] = $request->getPatient();
+		$data[] = $request->getRecord();
+		$data[] = "error=1";
+		$request->loadPage("viewGraph", $data);
+	}
+
+//---------------------------------------------------
 // Edit Patient Profile Submit
 //---------------------------------------------------
 } else if (isset($_GET["edit_submit"])) {
@@ -139,6 +149,7 @@ if (isset($_GET["file"])) {
 		$data[] = "error=1";
 		$request->loadPage("editMyProfile", $data);
 	}
+
 //---------------------------------------------------
 // Change Password Submit
 //---------------------------------------------------

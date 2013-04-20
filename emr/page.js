@@ -115,6 +115,60 @@ function setPhysician(id) {
 	});
 }
 
+function changeGraph(direction) {
+	if (typeof changeGraph.number == "undefined") {
+		changeGraph.number = 1;
+	}
+
+	var previousNumber = changeGraph.number;
+	changeGraph.number += direction;
+
+	switch (previousNumber) {
+		case 1:
+			previousGraph = "bloodPres";
+			break;
+		case 2:
+			previousGraph = "sugarLevel";
+			break;
+		case 3:
+			previousGraph = "weight";
+			break;
+	}
+
+	var graphImage = document.getElementById("graph-image");
+	var leftArrow = document.getElementsByClassName("left-arrow")[0];
+	var rightArrow = document.getElementsByClassName("right-arrow")[0];
+
+	var graphName = "";
+
+	switch (changeGraph.number) {
+		case 1:
+			graphName = "bloodPres";
+			leftArrow.style.display = "none";
+			break;
+		case 2:
+			graphName = "sugarLevel";
+			leftArrow.style.display = "inline";
+			rightArrow.style.display = "inline";
+			break;
+		case 3:
+			graphName = "weight";
+			rightArrow.style.display = "none";
+			break;
+		default:
+			graphName = "bloodPres";
+			changeGraph.number = 1;
+	}
+
+	graphImage.src = graphImage.src.replace(previousGraph, graphName);
+}
+
+function showGraphLoader() {
+	var graphLoader = document.getElementsByClassName("graph-loader")[0];
+	graphLoader.style.display = "block";
+}
+
+/*
 function switchFrame(id) {
 	var currentNav = document.getElementsByClassName("navbutton-active");
 	if (typeof(currentNav[0]) != "undefined" && currentNav[0] != null ) {
@@ -141,6 +195,7 @@ function switchFrame(id) {
 		}
 	}
 }
+*/
 
 function redirect(url) {
 	window.location = url;

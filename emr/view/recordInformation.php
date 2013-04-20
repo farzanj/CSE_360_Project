@@ -8,7 +8,8 @@ $record = unserialize(base64_decode($_POST["data2"]));
 <div class="frame-content" id="frame-10">
 	<span class="record-information">Record Information</span>
 	<!-- onclick is placeholder to demonstrate frame -->
-	<a class="view-graph" href="javascript:void(0)" onclick="loadPage('viewGraph')">View Graph</a>
+	<a class="view-graph" href="javascript:void(0)" onclick="loadPage('viewGraph');showGraphLoader();">View Graph</a>
+	<img class="graph-loader" src="images/loader.gif">
 	<span class="record-date"><?php echo date("F j, Y", strtotime($record->getDate())); ?></span>
 	<?php if ($user->getType() != "patient") { ?>
 		<span class="record-name"><?php echo $record->getPatient()->getFname() . " " . $record->getPatient()->getLname(); ?></span>

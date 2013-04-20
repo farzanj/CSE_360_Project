@@ -3,6 +3,8 @@ define("ABSPATH_REQ", dirname(__FILE__) . "/");
 include_once(ABSPATH_REQ . "model/User.php");
 include_once(ABSPATH_REQ . "model/Record.php");
 include_once(ABSPATH_REQ . "Validate.php");
+include_once(ABSPATH_REQ . "graphs/pChart/pChart.class");
+include_once(ABSPATH_REQ . "graphs/pChart/pData.class");
 
 class RequestManager {
 
@@ -23,6 +25,9 @@ class RequestManager {
 		$this->user = unserialize($_SESSION["user"]);
 		if (isset($_SESSION["patient"])) {
 			$this->patient = unserialize($_SESSION["patient"]);
+		}
+		if (isset($_SESSION["record"])) {
+			$this->record = unserialize($_SESSION["record"]);
 		}
 	}
 
@@ -160,6 +165,7 @@ class RequestManager {
 				$row = mysql_fetch_array($result);
 				$personnel = $this->findPersonnel($row["dEmail"]);
 				$this->record = new Record($patient, $row["bloodPres"], $row["sugarLevel"], $row["weight"], $row["prescription"], $personnel, $row["recId"], $row["date"]);
+				$_SESSION["record"] = serialize($this->record);
 
 				return true;
 			} else {
@@ -185,6 +191,7 @@ class RequestManager {
 			$patient = $this->findPatientById($row["regId"]);
 			$personnel = $this->findPersonnel($row["dEmail"]);
 			$this->record = new Record($patient, $row["bloodPres"], $row["sugarLevel"], $row["weight"], $row["prescription"], $personnel, $row["recId"], $row["date"]);
+			$_SESSION["record"] = serialize($this->record);
 
 			return true;
 		} else {
@@ -397,7 +404,81 @@ class RequestManager {
 	}
 	
 	public function generateGraph(){
-		// Phase 3 implementation
+		$recordData = array();
+		$recordData["categories"] = array("bloodPres" => "Blood Pressure", "sugarLevel" => "Sugar Level", "weight" => "Weight");
+		$recordData["bloodPres"] = array();
+		$recordData["sugarLevel"] = array();
+		$recordData["weight"] = array();
+		$recordData["date"] = array();
+		$recordData["number"] = array();
+
+		$query = "SELECT * FROM records WHERE regId = " . $this->patient->getRegId() . " ORDER BY date ASC LIMIT 20";
+		$result = mysql_query($query);
+
+		if (mysql_num_rows($result) > 0) {
+			$recordNumber = 1;
+			while ($row = mysql_fetch_array($result)) {
+				$recordData["bloodPres"][] = $row["bloodPres"];
+				$recordData["sugarLevel"][] = $row["sugarLevel"];
+				$recordData["weight"][] = $row["weight"];
+				$recordData["date"][] = strtotime($row["date"]);
+
+				$recordData["number"][] = $recordNumber;
+				$recordNumber++;
+
+				if (strtotime($this->record->getDate()) == strtotime($row["date"])) {
+					break;
+				}
+			}
+		}
+
+		$graphExists = false;
+		$firstName = $this->patient->getFname();
+		$lastName = $this->patient->getLname();
+
+		foreach ($recordData["categories"] as $category => $description) {
+			$imagePath = ABSPATH_REQ . "graphs/images/" . $firstName[0] . $lastName[0] . "-" . $category . "-" . date("m-d-Y", strtotime($this->record->getDate())) . ".png";
+			if (file_exists($imagePath)) {
+				$graphExists = true;
+			}
+		}
+
+		if (!$graphExists) {
+			foreach ($recordData["categories"] as $category => $description) {
+				$dataSet = new pData;
+
+				$dataSet->AddPoint($recordData["date"], "Serie1");
+				$dataSet->SetAbsciseLabelSerie("Serie1");
+				$dataSet->setXAxisFormat("date");
+
+				$dataSet->AddPoint($recordData[$category], "Serie2");
+				$dataSet->AddSerie("Serie2");
+				$dataSet->SetSerieName($description, "Serie2");
+				$dataSet->SetYAxisName($description);
+
+				$chart = new pChart(625, 240);
+				$chart->setDateFormat("m/d");
+				$chart->setFontProperties(ABSPATH_REQ . "fonts/tahoma.ttf", 8);
+				$chart->setGraphArea(70, 30, 605, 200);
+				$chart->drawFilledRoundedRectangle(7, 7, 618, 233, 5, 240, 240, 240);    
+				$chart->drawRoundedRectangle(5, 5, 620, 235, 5, 230, 230, 230);
+				$chart->drawGraphArea(255, 255, 255, true);
+				$chart->drawScale($dataSet->GetData(), $dataSet->GetDataDescription(), SCALE_NORMAL, 150, 150, 150, true, 0, 2);
+				$chart->drawGrid(4, true, 230, 230, 230, 50);
+				$chart->setFontProperties(ABSPATH_REQ . "fonts/tahoma.ttf", 6);
+				$chart->drawTreshold(0, 143, 55, 72, true, true);
+
+				$chart->drawLineGraph($dataSet->GetData(), $dataSet->GetDataDescription());     
+		 		$chart->drawPlotGraph($dataSet->GetData(), $dataSet->GetDataDescription(), 3, 2, 255, 255, 255);
+
+		 		$chart->setFontProperties(ABSPATH_REQ . "fonts/tahoma.ttf", 8);
+		 		$chart->drawLegend(75, 35, $dataSet->GetDataDescription(), 255, 255, 255);
+		 		$chart->setFontProperties(ABSPATH_REQ . "fonts/tahoma.ttf", 10);
+		 		$chart->drawTitle(60, 22, $this->patient->getFname() . " " . $this->patient->getLname() . " - " . $description, 50, 50, 50, 585);
+
+		 		$chart->Render(ABSPATH_REQ . "graphs/images/" . $firstName[0] . $lastName[0] . "-" . $category . "-" . date("m-d-Y", strtotime($this->record->getDate())) . ".png");
+	 		}
+	 	}
 	}
 }
 

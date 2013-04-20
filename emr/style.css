@@ -156,10 +156,6 @@ span.login-detail {
 	border-radius: 2px;
 }
 
-.loginbox:focus {
-	box-shadow: 0px 0px 3px 0px #000000 inset;
-}
-
 .loginsubmit {
 	width: 150px;;
 	height: 30px;
@@ -436,10 +432,6 @@ span.find-detail {
 	border-radius: 2px;
 }
 
-.findbox:focus {
-	box-shadow: 0px 0px 3px 0px #000000 inset;
-}
-
 .findsubmit {
 	width: 100px;;
 	height: 25px;
@@ -548,7 +540,7 @@ span.recent-detail {
 span.record-information {
 	font-size: 22px;
 	font-weight: bold;
-	color: #222222;
+	color: #551A8B;
 	opacity: 0.8;
 }
 
@@ -572,6 +564,13 @@ span.record-information {
 
 .view-graph:hover {
 	color: #0D4F8B;
+}
+
+img.graph-loader {
+	display: none;
+	position: absolute;
+	top: 0px;
+	left: 450px;
 }
 
 span.record-date {
@@ -669,6 +668,31 @@ img.graph {
 	border: none;
 }
 
+img.left-arrow {
+	position: absolute;
+	top: 85px;
+	left: -75px;
+	display: none;
+	opacity: 0.5;
+	cursor: pointer;
+}
+
+img.left-arrow:hover {
+	opacity: 1.0;
+}
+
+img.right-arrow {
+	position: absolute;
+	top: 85px;
+	left: 625px;
+	opacity: 0.5;
+	cursor: pointer;
+}
+
+img.right-arrow:hover {
+	opacity: 1.0;
+}
+
 span.prescription {
 	font-size: 17px;
 	font-weight: bold;
@@ -711,6 +735,16 @@ span.prescription {
 
 .prescription-submit:hover {
 	color: #0D4F8B;
+}
+
+span.prescription-error {
+	font-size: 15px;
+	font-weight: bold;
+	color: #CD5555;
+	display: block;
+	position: relative;
+	top: 15px;
+	left: 130px;
 }
 
 /** ENTER DATA **/
