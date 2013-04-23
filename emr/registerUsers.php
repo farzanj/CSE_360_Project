@@ -7,7 +7,7 @@ include("includes.php");
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 </head>
 
-<?php include(ABSPATH . "view/banner.php"); ?>
+<?php include("view/banner.php"); ?>
 
 <?php
 include("dbconnect.php");
@@ -53,7 +53,7 @@ if(($val->checkName($_POST['fname'])) && ($val->checkName($_POST['lname'])) && (
 	mysql_query($sSql);
 
 	$sSql = "INSERT INTO user
-				(email, password, type)
+				(email, pass, type)
 				VALUES ('".$_POST['email']."', sha1(\"".$_POST['regid']."\"), '".$type."')";
 
 	$result = mysql_query($sSql);
@@ -83,4 +83,4 @@ else {
 }
 ?>
 
-<?php include(ABSPATH . "view/footer.php"); ?>
+<?php include("view/footer.php"); ?>
