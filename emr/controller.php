@@ -16,9 +16,14 @@ if (isset($_GET["file"])) {
 	$data[] = $request->getPatient();
 
 	switch ($_GET["file"]) {
+		case "home":
+			foreach ($request->getApps() as $app) {
+				$data[] = $app;
+			}
+			$request->loadPage("home", $data);
+			break;
 		case "findRecord":
-			$records = $request->getRecentRecords();
-			foreach ($records as $record) {
+			foreach ($request->getRecentRecords() as $record) {
 				$data[] = $record;
 			}
 			$request->loadPage("findRecord", $data);
@@ -27,6 +32,12 @@ if (isset($_GET["file"])) {
 			$request->generateGraph();
 			$data[] = $request->getRecord();
 			$request->loadPage("viewGraph", $data);
+			break;
+		case "makeAppointment":
+			foreach ($request->getDoctors() as $doctor) {
+				$data[] = $doctor;
+			}
+			$request->loadPage("makeAppointment", $data);
 			break;
 		default:
 			$request->loadPage($_GET["file"], $data);
@@ -167,6 +178,15 @@ if (isset($_GET["file"])) {
 		$data[] = "error=1";
 		$request->loadPage("changePassword", $data);
 	}
+
+//---------------------------------------------------
+// Appointment Submit
+//---------------------------------------------------
+} else if (isset($_GET["appointment_submit"])) {
+	$date = $_GET["date_month"] . "-" . $_GET["date_day"] . "-" . date("Y", strtotime("now"));
+	$request->makeApp($_GET["patient_email"], $_GET["physician_email"], $date, $_GET["date_time"]);
+
+	$request->loadPage("enterSuccess", $data);
 
 //---------------------------------------------------
 // Login

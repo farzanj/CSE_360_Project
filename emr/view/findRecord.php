@@ -5,7 +5,6 @@ $user = unserialize(base64_decode($_POST["data1"]));
 ?>
 
 <div class="frame-content" id="frame-2">
-	<!-- action is placeholder -->
 	<form method="post" action="javascript:void(0)" id="findRecord">
 		<table id="find-table" cellpadding="0" cellspacing="0">
 			<tr class="find-row">
@@ -27,7 +26,6 @@ $user = unserialize(base64_decode($_POST["data1"]));
 				</tr>
 			<?php } ?>
 		</table>
-		<!-- onclick is placeholder to demonstrate the frame -->
 		<input type="submit" class="findsubmit" name="find_submit" value="Find" onclick="sendForm('findRecord')" />
 	</form>
 	<?php if (isset($_POST["error"]) && $_POST["error"] == 1) { ?>

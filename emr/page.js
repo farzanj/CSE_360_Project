@@ -98,20 +98,15 @@ function sendForm(formID, callback) {
 			callback();
 		}
 	}
-}	
+}
 
-function setPhysician(id) {
-	var row = document.getElementById(id);
-	var startPos = row.innerHTML.indexOf("<span class=\"choose-detail\">") + 28;
-	var endPos = row.innerHTML.indexOf("</span>");
-	var name = row.innerHTML.substr(startPos, endPos - startPos);
-
+function setPhysician(name, email) {
 	loadPage("makeAppointment2", function() {
 		var span = document.getElementsByClassName("physician-name");
 		span[0].innerHTML = name;
 
 		var physician = document.getElementById("physician-appointment");
-		physician.value = name;
+		physician.value = email;
 	});
 }
 

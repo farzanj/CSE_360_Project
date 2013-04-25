@@ -2,6 +2,7 @@
 define("ABSPATH_REQ", dirname(__FILE__) . "/");
 include_once(ABSPATH_REQ . "model/User.php");
 include_once(ABSPATH_REQ . "model/Record.php");
+include_once(ABSPATH_REQ . "model/Appointment.php");
 include_once(ABSPATH_REQ . "Validate.php");
 include_once(ABSPATH_REQ . "graphs/pChart/pChart.class");
 include_once(ABSPATH_REQ . "graphs/pChart/pData.class");
@@ -399,10 +400,79 @@ class RequestManager {
 		// Phase 3 implementation
 	}
 
-	public function makeApp(){
-		// Phase 3 implementation
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: getDoctors(): Doctor
+	//
+	// Returns an array of all the doctors in the database.
+	//--------------------------------------------------------------------------------------------------------
+	public function getDoctors(){
+		$doctors = array();
+		$result = mysql_query("SELECT email FROM doctor");
+
+		if ($result && mysql_num_rows($result) > 0) {
+			while ($row = mysql_fetch_array($result)) {
+				$doctors[] = new Doctor($row["email"]);
+			}
+		}
+
+		return $doctors;
+	}
+
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: makeApp(String pEmail, String dEmail, String date, String time): void
+	//
+	// Creates an appointment with the doctor and patient specified by a date and time.
+	//--------------------------------------------------------------------------------------------------------
+	public function makeApp($pEmail, $dEmail, $date, $time){
+		$app = new Appointment();
+
+		$patient = new Patient($pEmail);
+		$doctor = new Doctor($dEmail);
+		$app->setAppointment($patient, $doctor, $date, $time);
+
+		$app->store();
+	}
+
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: getApps(): void
+	//
+	// Returns an array of all the appointments for the current day.
+	//--------------------------------------------------------------------------------------------------------
+	public function getApps() {
+		date_default_timezone_set('America/Los_Angeles');
+		$now = strtotime("now");
+		$date = date("n", $now) . "-" . date("j", $now) . "-" . date("Y", $now);
+
+		switch ($this->user->getType()) {
+			case "nurse":
+				$query = "SELECT * FROM appointments WHERE date = '" . $date . "' ORDER BY time ASC";
+				break;
+			case "doctor":
+				$query = "SELECT * FROM appointments WHERE date = '" . $date . "' AND Demail = '" . $this->user->getEmail() . "' ORDER BY time ASC";
+				break;
+			case "patient":
+				$query = "SELECT * FROM appointments WHERE date = '" . $date . "' AND Pemail = '" . $this->user->getEmail() . "' ORDER BY time ASC";
+				break;
+		}
+
+		$apps = array();
+		$result = mysql_query($query);
+
+		if ($result && mysql_num_rows($result) > 0) {
+			while ($row = mysql_fetch_array($result)) {
+				$apps[] = new Appointment($row["appId"]);
+			}
+		}
+
+		return $apps;
 	}
 	
+	//--------------------------------------------------------------------------------------------------------
+	// FUNCTION: generateGraph(): void
+	//
+	// Retrieves the record data of the last 20 records up to and including the current record and generates
+	// three seperate graphs of the data (one for each health indicator).
+	//--------------------------------------------------------------------------------------------------------
 	public function generateGraph(){
 		$recordData = array();
 		$recordData["categories"] = array("bloodPres" => "Blood Pressure", "sugarLevel" => "Sugar Level", "weight" => "Weight");
